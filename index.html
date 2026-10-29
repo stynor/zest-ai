@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ZEST AI</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#16120a;--pn:#221b0d;--tx:#f5e6b8;--mu:#a8956a;--ac:#e0b030;--bd:#3a3016}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,sans-serif;transition:background .25s,color .25s;padding-bottom:78px;max-width:640px;margin:auto}
+h1{font-size:26px;letter-spacing:-.5px}h2{font-size:18px;margin:14px 0 8px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--bd)}
+.logo b{color:var(--ac)}
+#v{padding:12px 16px}
+.c{background:var(--pn);border:1px solid var(--bd);border-radius:16px;padding:14px;margin:10px 0}
+.hero{background:linear-gradient(135deg,var(--ac),transparent 160%),var(--pn);border-radius:22px;padding:20px}
+.mu{color:var(--mu);font-size:13px}
+button,input,select,textarea{font:inherit;color:var(--tx)}
+button{background:var(--ac);color:var(--bg);border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+input,select,textarea{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:9px;width:100%;margin:4px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac);transition:width .4s}
+nav{position:fixed;bottom:0;left:0;right:0;max-width:640px;margin:auto;display:flex;background:var(--pn);border-top:1px solid var(--bd);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;color:var(--mu);font-size:11px;padding:6px 2px}nav button.on{color:var(--ac)}nav span{display:block;font-size:20px}
+.msg{padding:9px 12px;border-radius:14px;margin:6px 0;max-width:88%;white-space:pre-wrap}.u{background:var(--ac);color:var(--bg);margin-left:auto}.a{background:var(--pn);border:1px solid var(--bd)}
+.th{width:calc(50% - 4px);text-align:left;border:2px solid transparent}.th.sel{border-color:var(--ac)}
+.ch{display:flex;align-items:flex-end;gap:6px;height:80px}.ch i{flex:1;background:var(--ac);border-radius:5px 5px 0 0;min-height:3px}
+.opt{display:block;width:100%;text-align:left;margin:5px 0;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+.ok{border-color:#2ecc71!important}.no{border-color:#e74c3c!important}
+.lk{opacity:.45}
+</style></head><body>
+<div class="top"><h1 class="logo">ZEST <b>AI</b></h1><div class="row" id="lg"></div></div>
+<div id="v"></div><nav id="nv"></nav>
+<script>
+// ===== CONFIG: server endpoint that calls the AI API (keys live ONLY on the server) =====
+const ZEST_API = ""; // e.g. "https://your-server.com/api/chat"
+// ===== i18n =====
+const T={
+ru:{home:"Главная",teacher:"Учитель",courses:"Курсы",words:"Словарь",more:"Ещё",look:"Внешний вид",hello:"Продолжим учиться",xp:"Опыт",lvl:"Уровень",streak:"Серия",wd:"слов",days:"дней пройдено",prog:"Прогресс за 7 дней",apply:"Применить",accent:"Свой акцент",habits:"Привычки",plans:"Мои планы",profile:"Профиль",add:"Добавить",del:"Удалить",ph:"Напишите на изучаемом языке…",send:"Отправить",noapi:"ИИ-сервер не подключён: укажите ZEST_API в index.html (см. README).",err:"Ошибка сети. Попробуйте ещё раз.",cmds:["Объясни слово","Дай подсказку","Повтори медленнее","Приведи пример","Объясни грамматику","Давай ещё раз"],clr:"Очистить память учителя",start:"Начать",done:"Готово ✓",soon:"В разработке",check:"Проверить",right:"Верно! +20 XP",wrong:"Не совсем. Правильно:",theory:"Теория",ex:"Пример",know:"Знаю",dk:"Не знаю",show:"Показать",due:"К повторению",nodue:"Сегодня повторять нечего",w:"Слово",tr:"Перевод",exs:"Пример",tpl:"Шаблоны привычек",name:"Название",goal:"Цель",term:"Срок",perw:"занятий/нед",tasks:"Задачи",today:"Сегодня",reset:"Сбросить все данные",acc:"Точность",ready:"Готов: День 1–10 (этап 1) «Английский с нуля». Остальное в разработке.",ui:"Язык интерфейса",stage:"Этап 1 · Дни 1–10"},
+en:{home:"Home",teacher:"Teacher",courses:"Courses",words:"Words",more:"More",look:"Appearance",hello:"Let's keep learning",xp:"XP",lvl:"Level",streak:"Streak",wd:"words",days:"days completed",prog:"Last 7 days",apply:"Apply",accent:"Custom accent",habits:"Habits",plans:"My plans",profile:"Profile",add:"Add",del:"Delete",ph:"Write in your target language…",send:"Send",noapi:"AI server not connected: set ZEST_API in index.html (see README).",err:"Network error. Try again.",cmds:["Explain word","Give a hint","Repeat slower","Give an example","Explain grammar","Let's try again"],clr:"Clear teacher memory",start:"Start",done:"Done ✓",soon:"In development",check:"Check",right:"Correct! +20 XP",wrong:"Not quite. Correct:",theory:"Theory",ex:"Example",know:"Know it",dk:"Don't know",show:"Show",due:"Due for review",nodue:"Nothing to review today",w:"Word",tr:"Translation",exs:"Example",tpl:"Habit templates",name:"Name",goal:"Goal",term:"Deadline",perw:"sessions/week",tasks:"Tasks",today:"Today",reset:"Reset all data",acc:"Accuracy",ready:"Ready: Days 1–10 (stage 1) of English from scratch. Rest in development.",ui:"Interface language",stage:"Stage 1 · Days 1–10"},
+zh:{home:"首页",teacher:"老师",courses:"课程",words:"词汇",more:"更多",look:"外观",hello:"继续学习吧",xp:"经验",lvl:"等级",streak:"连续",wd:"词",days:"天已完成",prog:"近7天",apply:"应用",accent:"自定义主色",habits:"习惯",plans:"我的计划",profile:"个人资料",add:"添加",del:"删除",ph:"用目标语言输入…",send:"发送",noapi:"未连接AI服务器：请在index.html设置ZEST_API（见README）。",err:"网络错误，请重试。",cmds:["解释单词","给个提示","说慢一点","举个例子","解释语法","再试一次"],clr:"清除老师记忆",start:"开始",done:"完成 ✓",soon:"开发中",check:"检查",right:"正确！+20 XP",wrong:"不对。正确答案：",theory:"理论",ex:"例句",know:"会",dk:"不会",show:"显示",due:"待复习",nodue:"今天没有要复习的",w:"单词",tr:"翻译",exs:"例句",tpl:"习惯模板",name:"名称",goal:"目标",term:"截止日期",perw:"次/周",tasks:"任务",today:"今天",reset:"重置所有数据",acc:"正确率",ready:"已完成：零基础英语第1–10天（第1阶段）。其余开发中。",ui:"界面语言",stage:"第1阶段 · 第1–10天"}};
+const TH={gold:["Gold","#fff6d6","#fffbea","#2b2200","#7a6a2e","#c99700","#ecd98a"],darkgold:["Dark Gold","#16120a","#221b0d","#f5e6b8","#a8956a","#e0b030","#3a3016"],darkred:["Dark Red","#140808","#221010","#f7dede","#b08a8a","#e03a3a","#3d1a1a"],white:["White","#f6f7fb","#ffffff","#14171f","#6b7280","#4f46e5","#e3e6ee"],obsidian:["Obsidian","#000000","#0f0f10","#f2f2f2","#8a8a8f","#ffffff","#26262a"],emerald:["Emerald","#07130e","#0e2119","#dcf5e8","#86ad9a","#2ecc8f","#17382b"],purple:["Cyber Purple","#0d0716","#181028","#eadcff","#9b86bd","#a855f7","#2d1b4d"],ocean:["Ocean Blue","#06101f","#0c1b33","#dbeafe","#86a0c4","#38a0ff","#183257"]};
+// ===== Course: English from scratch (days 1-10 real content; 11-60 not yet written) =====
+const D=[
+["Greetings","<p>Hello / Hi — нейтральное приветствие в любое время. По времени суток: <b>Good morning</b> (утро), <b>Good afternoon</b> (день), <b>Good evening</b> (вечер).</p><p><b>Good night</b> — только при прощании перед сном, не при встрече!</p><p>How are you? → I'm fine, thanks. And you?</p>",[["Утром вы говорите:",["Good night","Good morning","Goodbye"],1],["Ответ на «How are you?»",["I'm fine, thanks.","My name is Ali.","Good night."],0],["Good night говорят…",["при встрече вечером","при прощании на ночь","утром"],1]],[["f","Good ____ (утро)","morning"],["c","— How are you? — ____",["I'm fine, thanks. And you?","Yes, please."],0],["f","Переведите: Привет!","hello|hi"]],[["hello","привет"],["goodbye","до свидания"],["morning","утро"]]],
+["Introducing yourself","<p>Знакомство: <b>My name is Ali.</b> / <b>I'm from Tajikistan.</b> / <b>I'm 18.</b></p><p>Притяжательные слова: my (мой), your (твой), his (его), her (её). Вопрос: What's your name?</p><p>На знакомстве: <b>Nice to meet you.</b></p>",[["This is Anna. ___ name is Anna.",["Her","She","He"],0],["Как спросить имя?",["What's your name?","Where are you?","How old?"],0],["Приятно познакомиться:",["Nice to meet you.","See you.","Thank you."],0]],[["f","___ name is Ali. (мой)","my"],["f","Nice to ____ you.","meet"],["c","I ___ from Tajikistan.",["am","is","are"],0]],[["name","имя"],["nice","приятный"],["meet","встречать"]]],
+["Verb to be","<p>Глагол <b>to be</b> («быть») есть в каждом предложении: <b>I am</b>, you/we/they <b>are</b>, he/she/it <b>is</b>.</p><p>Отрицание: + not (She is not / isn't). Вопрос: переставляем — Are you ready?</p><p>Краткие формы: I'm, she's, they're.</p>",[["She ___ a student.",["is","are","am"],0],["They ___ friends.",["is","are","am"],1],["___ you ready?",["Is","Are","Am"],1]],[["f","I ___ 18. (am/is/are)","am"],["f","He ___ not a teacher. (am/is/are)","is"],["f","Сделайте отрицание: She is happy.","She is not happy|She isn't happy|She's not happy"]],[["student","студент"],["teacher","учитель"],["happy","счастливый"]]],
+["Numbers","<p>1–10: one, two, three, four, five, six, seven, eight, nine, ten.</p><p>11–20: eleven, twelve, thirteen … nineteen, twenty. Окончание <b>-teen</b> = 13–19 (eighteen = 18), а <b>-ty</b> = десятки (eighty = 80).</p><p>How old are you? — I'm eighteen.</p>",[["7 —",["six","seven","eight"],1],["ten —",["10","100","1"],0],["I'm ___ (18).",["eighty","eighteen","eight"],1]],[["f","Напишите 5 словом","five"],["f","Напишите 12 словом","twelve"],["c","3 + 4 = ?",["six","seven","eight"],1]],[["five","пять"],["twelve","двенадцать"],["eighteen","восемнадцать"]]],
+["Family","<p>mother, father, sister, brother, parents (родители), grandmother, grandfather.</p><p>Владение: <b>I/you/we/they have</b>, <b>he/she/it has</b>. Пример: I have a sister. He has two brothers.</p>",[["Мать моей мамы — my ___",["grandmother","sister","aunt"],0],["He ___ a brother.",["have","has","haves"],1],["parents —",["родители","дети","братья"],0]],[["f","I ___ two sisters. (have/has)","have"],["f","She ___ a brother. (have/has)","has"],["f","Переведите: отец","father"]],[["mother","мама"],["father","отец"],["parents","родители"]]],
+["Articles a / an / the","<p><b>a</b> — перед согласным звуком (a book), <b>an</b> — перед гласным звуком (an apple, an hour). Считается звук, а не буква!</p><p><b>the</b> — когда предмет конкретный или единственный: the sun, the book on the table.</p>",[["___ orange",["a","an","the"],1],["___ book (любая)",["a","an","the"],0],["___ sun",["a","an","the"],2]],[["f","___ umbrella (a/an)","an"],["f","___ teacher (a/an)","a"],["c","I have ___ idea.",["a","an","the"],1]],[["apple","яблоко"],["umbrella","зонт"],["idea","идея"]]],
+["Food & drinks","<p>Вежливый заказ: <b>I'd like a coffee, please.</b> (хотел бы). Просьба: <b>Can I have the menu?</b> Цена: <b>How much is it?</b></p><p>Не говорите «Give me…» — звучит грубо. Please и thank you обязательны.</p>",[["Вежливый заказ:",["Give me tea!","I'd like tea, please.","Tea now."],1],["Можно мне воды?",["Can I have water?","Can I water?","Have water?"],0],["bread —",["хлеб","молоко","сыр"],0]],[["f","I'd ___ a coffee, please. (хотел бы)","like"],["f","Can I ___ the menu?","have"],["c","Спросите цену:",["How much is it?","How many is it?"],0]],[["coffee","кофе"],["menu","меню"],["bread","хлеб"]]],
+["Present Simple","<p>Привычки и факты. I/you/we/they study; <b>he/she/it studies</b> (-s / -es). Отрицание: <b>don't</b> / <b>doesn't</b> + основной глагол без -s: She doesn't like tea.</p><p>Маркеры: every day, usually, often, never. Правила -es: watch → watches, go → goes.</p>",[["He ___ English.",["study","studies","studying"],1],["She ___ like tea.",["don't","doesn't","isn't"],1],["Маркер Present Simple:",["now","every day","yesterday"],1]],[["f","She ___ (go) to school.","goes"],["f","They ___ like coffee. (don't/doesn't)","don't|do not"],["f","He ___ (watch) TV.","watches"]],[["study","учиться"],["usually","обычно"],["watch","смотреть"]]],
+["Questions","<p>Вопросительные слова: <b>What</b> (что), <b>Where</b> (где), <b>Who</b> (кто), <b>When</b> (когда), <b>How</b> (как).</p><p>В Present Simple: <b>Do/Does</b> + подлежащее + глагол: Do you like tea? Where does she live? Порядок слов: вопросительное слово → do/does → подлежащее → глагол.</p>",[["___ are you from?",["What","Where","Who"],1],["___ she like pizza?",["Do","Does","Is"],1],["Who —",["кто","где","когда"],0]],[["f","___ do you live? (где)","Where"],["f","What time ___ he get up? (do/does)","does"],["c","Правильный вопрос:",["Where you live do?","Where do you live?"],1]],[["where","где"],["when","когда"],["live","жить"]]],
+["Stage 1 test","<p>Повторение этапа: <b>to be</b> (I am, she is, they are), <b>a/an</b>, <b>my/your</b>, <b>Present Simple</b> (+s для he/she/it), вопросы с do/does.</p><p>Пройдите опрос и практику без подсказок — это итог первых 10 дней.</p>",[["I ___ a student.",["am","is","are"],0],["___ apple",["a","an","the"],1],["She ___ coffee every day.",["drink","drinks","drinking"],1]],[["f","My name ___ Ali. (am/is/are)","is"],["f","Where ___ you from? (am/is/are)","are"],["f","Переведите: Меня зовут Али.","My name is Ali"]],[["student","студент"],["every day","каждый день"]]]];
+// ===== State =====
+const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand()}
+const dflt={th:"darkgold",ac:"",lg:"ru",xp:0,log:{},done:{},ok:0,bad:0,words:[],habits:[],plans:[],chat:[],err:{}};
+let S;try{S={...dflt,...JSON.parse(localStorage.zest||"{}")}}catch(e){S={...dflt}}
+const save=()=>{try{localStorage.zest=JSON.stringify(S)}catch(e){}};
+const t=k=>(T[S.lg]||T.ru)[k]??T.en[k]??k;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dk=(d=new Date())=>d.toISOString().slice(0,10);
+const addXp=n=>{S.xp+=n;S.log[dk()]=(S.log[dk()]||0)+n;save()};
+function theme(id,ac){const x=TH[id];const r=document.documentElement.style;["bg","pn","tx","mu","ac","bd"].forEach((k,i)=>r.setProperty("--"+k,x[i+1]));if(ac)r.setProperty("--ac",ac);}
+let tab="home",sub=null,prev=null;
+const tabs=[["home","🏠","home"],["teacher","💬","teacher"],["courses","📚","courses"],["words","🗂","words"],["more","⚙️","more"]];
+function go(x,s){tab=x;sub=s||null;prev=null;cur=null;theme(S.th,S.ac);draw()}
+function draw(){
+ $lg.innerHTML=[["ru","RU"],["en","EN"],["zh","中文"]].map(([c,l])=>`<button class="${S.lg==c?"":"g"}" style="padding:5px 9px" onclick="S.lg='${c}';save();draw()">${l}</button>`).join("");
+ $nv.innerHTML=tabs.map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${t(l)}</button>`).join("");
+ $v.innerHTML=({home,teacher,courses,words,more})[tab]();
+ if(tab=="teacher"){const b=document.getElementById("cb");b&&(b.scrollTop=b.scrollHeight)}
+}
+const lvl=()=>1+Math.floor(S.xp/100);
+function streak(){let n=0,d=new Date();if(!S.log[dk(d)])d.setDate(d.getDate()-1);while(S.log[dk(d)]){n++;d.setDate(d.getDate()-1)}return n}
+function chart(n){let a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push(S.log[dk(d)]||0)}const m=Math.max(1,...a);return`<div class="ch">${a.map(v=>`<i style="height:${v/m*100}%"></i>`).join("")}</div>`}
+function home(){const dn=Object.keys(S.done).length,tot=S.ok+S.bad;
+return`<div class="hero"><div class="mu" style="color:inherit;opacity:.8">${t("hello")}</div><h1>Lv ${lvl()} · ${S.xp} XP</h1><div class="bar" style="margin-top:10px"><i style="width:${S.xp%100}%"></i></div></div>
+<div class="row" style="margin:10px 0"><div class="c" style="flex:1;text-align:center"><h1>${streak()}🔥</h1><div class="mu">${t("streak")}</div></div><div class="c" style="flex:1;text-align:center"><h1>${S.words.length}</h1><div class="mu">${t("wd")}</div></div><div class="c" style="flex:1;text-align:center"><h1>${tot?Math.round(S.ok/tot*100)+"%":"–"}</h1><div class="mu">${t("acc")}</div></div></div>
+<div class="c"><b>${t("prog")}</b>${chart(7)}</div><div class="c"><b>${dn}/10</b> <span class="mu">${t("days")}</span><div class="bar" style="margin-top:6px"><i style="width:${dn*10}%"></i></div></div>`}
+// ----- Teacher -----
+function teacher(){return`<div id="cb" style="min-height:40vh">${S.chat.map(m=>`<div class="msg ${m.r=="user"?"u":"a"}">${esc(m.c)}</div>`).join("")||`<div class="mu">${t("ph")}</div>`}</div>
+<div class="row" style="margin:8px 0">${t("cmds").map((c,i)=>`<button class="g" style="padding:6px 10px;font-size:13px" onclick="ask('/${["word","hint","slow","example","grammar","retry"][i]}: ${c}')">${c}</button>`).join("")}</div>
+<div class="row" style="margin:8px 0">${["Ordering food","Meeting someone","Buying a ticket","In a shop","Job interview"].map(c=>`<button class="g" style="padding:6px 10px;font-size:13px" onclick="ask('/scenario: ${c}. Play the role, react to my answers, give feedback at the end.')">🎭 ${c}</button>`).join("")}</div>
+<div class="row"><input id="ci" placeholder="${t("ph")}" onkeydown="if(event.key=='Enter')ask()" style="flex:1;width:auto"><button onclick="ask()">${t("send")}</button></div>
+<button class="g" style="margin-top:10px;font-size:12px" onclick="S.chat=[];save();draw()">${t("clr")}</button>`}
+async function ask(x){const i=document.getElementById("ci");const txt=x||(i&&i.value.trim());if(!txt)return;S.chat.push({r:"user",c:txt});S.chat=S.chat.slice(-30);save();draw();
+ if(!ZEST_API){S.chat.push({r:"assistant",c:t("noapi")});draw();return}
+ try{const r=await fetch(ZEST_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData:tg?tg.initData:"",messages:S.chat.slice(-12),context:{explainLang:S.lg,done:Object.keys(S.done),words:S.words.slice(-30).map(w=>w.w),mistakes:S.err}})});
+ if(!r.ok)throw 0;const d=await r.json();S.chat.push({r:"assistant",c:String(d.reply||"").slice(0,4000)})}catch(e){S.chat.push({r:"assistant",c:t("err")})}
+ save();draw()}
+// ----- Courses -----
+let cur=null;
+const L={ru:["Лекция","Опрос после лекции","Практика","Далее","Я уже знаю тему — сразу к опросу","К опросу →","Верно ✓","Неверно. Ответ: ","Проверить","Итог","Введите ответ…","К урокам","Пройти заново","Перечитать лекцию"],en:["Lecture","Quiz after the lecture","Practice","Next","I know this — go to the quiz","To the quiz →","Correct ✓","Wrong. Answer: ","Check","Result","Type your answer…","Lessons","Retry","Re-read lecture"],zh:["讲解","课后测验","练习","下一个","我已掌握，直接测验","去测验 →","正确 ✓","错误。答案：","检查","结果","输入答案…","课程列表","重做","重读讲解"]};
+const l=i=>(L[S.lg]||L.ru)[i];
+const nm=s=>String(s).toLowerCase().replace(/[’]/g,"'").replace(/[.,!?]/g,"").replace(/\s+/g," ").trim();
+const Q=d=>[...d[2].map(x=>({t:"c",q:x[0],o:x[1],a:x[2],ph:1})),...d[3].map(x=>x[0]=="c"?{t:"c",q:x[1],o:x[2],a:x[3],ph:2}:{t:"f",q:x[1],a:x[2],ph:2})];
+function courses(){
+ if(sub==null)return`<h2>🇬🇧 English · 60</h2><div class="mu">${t("ready")}</div><div class="c"><b>${t("stage")}</b>${D.map((d,i)=>`<button class="opt ${S.done[i]?"ok":""}" onclick="go('courses',${i})">${i+1}. ${d[0]} <span class="mu">${S.done[i]?"✓ "+S.done[i]+"/6":"📖 → 📝 → 🛠"}</span></button>`).join("")}</div><div class="c lk"><b>Days 11–60</b> · ${t("soon")}</div><div class="c lk">🇫🇷 Français · 🇨🇳 中文 — ${t("soon")}</div>`;
+ const d=D[sub];if(!cur)cur={st:0,k:0,ok:0,fb:null};
+ const back=`<button class="g" onclick="go('courses')">← ${l(11)}</button>`,head=`<h2>${sub+1}. ${d[0]}</h2>`;
+ if(cur.st==0)return back+head+`<button class="g" style="margin-bottom:8px" onclick="cur.st=1;draw()">${l(4)}</button><div class="c"><b>📖 ${l(0)}</b>${d[1]}</div><button onclick="cur.st=1;draw()">${l(5)}</button>`;
+ const qs=Q(d);
+ if(cur.st==2){const n=cur.ok;return back+head+`<div class="c" style="text-align:center"><h1>${n}/${qs.length}</h1><p>${n>=5?"🔥":n>=3?"👍":"💪"} ${l(9)}${cur.gain?` · +${cur.gain} XP`:""}</p><div class="bar"><i style="width:${n/qs.length*100}%"></i></div></div><button onclick="cur=null;draw()">${l(12)}</button> <button class="g" onclick="cur={st:0,k:0,ok:0,fb:null};draw()">${l(13)}</button>`}
+ const q=qs[cur.k],ans=q.t=="c"?q.o[q.a]:q.a.split("|")[0];
+ return back+head+`<div class="mu">${q.ph==1?"📝 "+l(1):"🛠 "+l(2)} · ${cur.k%3+1}/3</div><div class="c"><b>${q.q}</b>${q.t=="c"?q.o.map((o,i)=>`<button class="opt ${cur.fb?(i==q.a?"ok":cur.pk==i?"no":""):""}" ${cur.fb?"disabled":""} onclick="chk(${i})">${o}</button>`).join(""):`<input id="fi" ${cur.fb?"disabled":""} placeholder="${l(10)}" value="${esc(cur.fv||"")}" onkeydown="if(event.key=='Enter')chk(this.value)">${cur.fb?"":`<button onclick="chk(document.getElementById('fi').value)">${l(8)}</button>`}`}${cur.fb?`<p class="${cur.fb==1?"":"mu"}">${cur.fb==1?l(6):l(7)+esc(ans)}</p><button onclick="nx()">${l(3)}</button>`:""}</div>`}
+function chk(v){if(cur.fb)return;const d=D[sub],q=Q(d)[cur.k];const ok=q.t=="c"?v==q.a:q.a.split("|").map(nm).includes(nm(v));cur.fb=ok?1:2;cur.pk=v;cur.fv=v;if(ok){cur.ok++;S.ok++}else{S.bad++;S.err[d[0]]=(S.err[d[0]]||0)+1}save();draw()}
+function nx(){const d=D[sub];cur.k++;cur.fb=null;cur.fv="";if(cur.k>=6){cur.st=2;if(cur.ok>=3){if(!S.done[sub]){cur.gain=10+cur.ok*5;addXp(cur.gain);d[4].forEach(([w,tr])=>{if(!S.words.find(x=>x.w==w))S.words.push({w,tr,ex:"",due:dk(),int:1,err:0})})}S.done[sub]=Math.max(S.done[sub]||0,cur.ok);save()}}draw()}
+// ----- Words (spaced repetition) -----
+let shown=false;
+function words(){const due=S.words.filter(w=>w.due<=dk());const w=due[0];
+ return`<h2>${t("due")}: ${due.length}</h2>${w?`<div class="c" style="text-align:center"><h1>${esc(w.w)}</h1>${shown?`<p>${esc(w.tr)}</p><p class="mu">${esc(w.ex||"")}</p><div class="row" style="justify-content:center"><button class="g" onclick="rate('${esc(w.w)}',0)">${t("dk")}</button><button onclick="rate('${esc(w.w)}',1)">${t("know")}</button></div>`:`<button onclick="shown=true;draw()">${t("show")}</button>`}</div>`:`<div class="c mu">${t("nodue")}</div>`}
+ <div class="c"><b>${t("add")}</b><input id="nw" placeholder="${t("w")}"><input id="nt" placeholder="${t("tr")}"><input id="ne" placeholder="${t("exs")}"><button onclick="addW()">${t("add")}</button></div>
+ <div class="mu">${S.words.length} ${t("wd")}</div>${S.words.map(x=>`<div class="c row" style="justify-content:space-between;margin:4px 0;padding:8px 12px"><span>${esc(x.w)} — ${esc(x.tr)}</span><span class="mu">${x.int}d</span></div>`).join("")}`}
+function rate(w,k){const x=S.words.find(a=>a.w==w);if(!x)return;if(k){x.int=Math.min(60,x.int*2)}else{x.int=1;x.err=(x.err||0)+1}const d=new Date();d.setDate(d.getDate()+x.int);x.due=dk(d);shown=false;save();draw()}
+function addW(){const w=nw.value.trim(),tr=nt.value.trim();if(!w||!tr)return;if(!S.words.find(x=>x.w==w))S.words.push({w,tr,ex:ne.value.trim(),due:dk(),int:1,err:0});save();draw()}
+// ----- More: look / habits / plans / profile -----
+const TPL=["10 new words","15 min practice","Review old words","Read a text","Listen to speech","Talk with AI"];
+function more(){
+ const m=[["look","🎨",t("look")],["habits","✅",t("habits")],["plans","🗓",t("plans")],["profile","👤",t("profile")]];
+ if(!sub)return m.map(([k,i,l])=>`<button class="opt c" style="font-size:16px" onclick="go('more','${k}')">${i} ${l}</button>`).join("");
+ const back=`<button class="g" onclick="go('more')">←</button>`;
+ if(sub=="look")return back+`<h2>${t("look")}</h2><div class="row">${Object.entries(TH).map(([k,x])=>`<button class="th c ${(prev||S.th)==k?"sel":""}" style="background:${x[2]};color:${x[3]};border-color:${(prev||S.th)==k?x[5]:x[6]}" onclick="prev='${k}';theme('${k}');draw()"><b style="color:${x[5]}">●</b> ${x[0]}</button>`).join("")}</div>
+ <div class="c"><div class="mu">${t("accent")}</div><input type="color" id="ac" value="${S.ac||TH[S.th][5]}" oninput="theme(prev||S.th,this.value)"></div><button onclick="S.th=prev||S.th;S.ac=document.getElementById('ac').value;save();go('more','look')">${t("apply")}</button>
+ <h2>${t("ui")}</h2><div class="row">${[["ru","Русский"],["en","English"],["zh","中文"]].map(([c,l])=>`<button class="${S.lg==c?"":"g"}" onclick="S.lg='${c}';save();draw()">${l}</button>`).join("")}</div>`;
+ if(sub=="habits")return back+`<h2>${t("habits")}</h2>${S.habits.map((h,i)=>`<div class="c row" style="justify-content:space-between"><span>${esc(h.n)} <span class="mu">🔥${hs(h)}</span></span><span><button class="${h.d.includes(dk())?"":"g"}" onclick="hd(${i})">✓</button> <button class="g" onclick="S.habits.splice(${i},1);save();draw()">✕</button></span></div>`).join("")}
+ <div class="c"><input id="hn" placeholder="${t("name")}"><button onclick="ha(hn.value)">${t("add")}</button></div><b>${t("tpl")}</b><div class="row" style="margin-top:6px">${TPL.map(x=>`<button class="g" onclick="ha('${x}')">+ ${x}</button>`).join("")}</div>`;
+ if(sub=="plans")return back+`<h2>${t("plans")}</h2>${S.plans.map((p,i)=>`<div class="c"><b>${esc(p.g)}</b> <span class="mu">${esc(p.t)} · ${p.n}/${t("perw")}</span><br>${p.k.map((k,j)=>`<label style="display:block"><input type="checkbox" style="width:auto" ${k.x?"checked":""} onchange="S.plans[${i}].k[${j}].x=this.checked;save()"> ${esc(k.n)}</label>`).join("")}<input placeholder="${t("tasks")}" onkeydown="if(event.key=='Enter'&&this.value){S.plans[${i}].k.push({n:this.value,x:0});save();draw()}"><button class="g" onclick="S.plans.splice(${i},1);save();draw()">${t("del")}</button></div>`).join("")}
+ <div class="c"><input id="pg" placeholder="${t("goal")}"><input id="pt" type="date"><input id="pn" type="number" min="1" max="14" value="4"><button onclick="if(pg.value){S.plans.push({g:pg.value,t:pt.value,n:pn.value,k:[]});save();draw()}">${t("add")}</button></div>`;
+ if(sub=="profile"){const tot=S.ok+S.bad;return back+`<h2>${t("profile")}</h2>${tg&&tg.initDataUnsafe.user?`<div class="c"><b>${esc(tg.initDataUnsafe.user.first_name)}</b></div>`:""}<div class="c">Lv ${lvl()} · ${S.xp} XP<br>${Object.keys(S.done).length}/10 ${t("days")}<br>${S.words.length} ${t("wd")}<br>✓ ${S.ok} · ✗ ${S.bad}</div><div class="c"><b>7</b>${chart(7)}<b>30</b>${chart(30)}</div><div class="c"><b>${t("tasks")}</b>${Object.entries(S.err).map(([k,v])=>`<div>${esc(k)} ×${v}</div>`).join("")||"–"}</div><button class="g" onclick="if(confirm('?')){localStorage.removeItem('zest');location.reload()}">${t("reset")}</button>`}}
+function hs(h){let n=0,d=new Date();if(!h.d.includes(dk(d)))d.setDate(d.getDate()-1);while(h.d.includes(dk(d))){n++;d.setDate(d.getDate()-1)}return n}
+function ha(n){n=n.trim();if(n){S.habits.push({n,d:[],r:[]});save();draw()}}
+function hd(i){const h=S.habits[i],k=dk();if(h.d.includes(k))h.d=h.d.filter(x=>x!=k);else{h.d.push(k);if(!h.r.includes(k)){h.r.push(k);addXp(5)}}save();draw()}
+const $lg=document.getElementById("lg"),$nv=document.getElementById("nv"),$v=document.getElementById("v");
+theme(S.th,S.ac);draw();
+</script></body></html>
